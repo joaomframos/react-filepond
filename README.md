@@ -4,41 +4,29 @@ React FilePond is a handy wrapper component for [FilePond](https://github.com/pq
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/pqina/react-filepond/blob/master/LICENSE)
 [![npm version](https://badge.fury.io/js/react-filepond.svg)](https://www.npmjs.com/package/react-filepond)
-[![Support on Patreon](https://img.shields.io/badge/support-patreon-salmon.svg)](https://www.patreon.com/rikschennink)
+[![Donate with PayPal](https://img.shields.io/badge/donate-PayPal.me-pink.svg)](https://www.paypal.me/rikschennink/10)
 
 <img src="https://github.com/pqina/filepond-github-assets/blob/master/filepond-animation-01.gif" width="370" alt=""/>
 
-
-## Thinking of learning React?
-
-Want to learn React but you don't know where to start? I highly recommend [React for Beginners](http://bit.ly/react-course) by Wes Bos.
-
-If you're already familiar with React and want to brush up your skills [Advanced React](http://bit.ly/react-advanced-course) is a great way to do so.
-
-
-## Installation
+Installation:
 
 ```bash
-npm install react-filepond filepond --save
+npm install react-filepond --save
 ```
 
 Usage:
 
 ```jsx
 // Import React FilePond
-import { FilePond, registerPlugin } from 'react-filepond';
+import { FilePond, File, registerPlugin } from 'react-filepond';
 
 // Import FilePond styles
 import 'filepond/dist/filepond.min.css';
 
-// Import the Image EXIF Orientation and Image Preview plugins
-// Note: These need to be installed separately
-import FilePondPluginImageExifOrientation from 'filepond-plugin-image-exif-orientation';
-import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
+// Register the image preview plugin
+import FilePondImagePreview from 'filepond-plugin-image-preview';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
-
-// Register the plugins
-registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
+registerPlugin(FilePondImagePreview);
 
 // Our app
 class App extends Component {
@@ -46,19 +34,8 @@ class App extends Component {
         super(props);
 
         this.state = {
-            // Set initial files, type 'local' means this is a file
-            // that has already been uploaded to the server (see docs)
-            files: [{
-                source: 'index.html',
-                options: {
-                    type: 'local'
-                }
-            }]
+            files: ['index.html']
         };
-    }
-
-    handleInit() {
-        console.log('FilePond instance has initialised', this.pond);
     }
 
     render() {
@@ -66,20 +43,14 @@ class App extends Component {
             <div className="App">
             
                 {/* Pass FilePond properties as attributes */}
-                <FilePond ref={ref => this.pond = ref}
-                          files={this.state.files}
-                          allowMultiple={true}
-                          maxFiles={3} 
-                          server="/api"
-                          oninit={() => this.handleInit() }
-                          onupdatefiles={fileItems => {
-                              // Set currently active file objects to this.state
-                              this.setState({
-                                  files: fileItems.map(fileItem => fileItem.file)
-                              });
-                          }}>
+                <FilePond allowMultiple={true} maxFiles={3} server="/api">
+                    
+                    {/* Set current files using the <File/> component */}
+                    {this.state.files.map(file => (
+                        <File key={file} source={file} />
+                    ))}
+                    
                 </FilePond>
-                
             </div>
         );
     }

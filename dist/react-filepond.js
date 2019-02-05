@@ -1,8 +1,8 @@
 /*!
- * react-filepond v7.0.1
+ * react-filepond v2.0.6
  * A handy FilePond adapter component for React
  * 
- * Copyright (c) 2019 PQINA
+ * Copyright (c) 2018 PQINA
  * https://pqina.nl/filepond
  * 
  * Licensed under the MIT license.
@@ -13,7 +13,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.FilePond = exports.FileStatus = exports.registerPlugin = undefined;
+exports.File = exports.FilePond = exports.registerPlugin = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -36,11 +36,26 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 // We need to be able to call the registerPlugin method directly so we can add plugins
 exports.registerPlugin = _filepond.registerPlugin;
-exports.FileStatus = _filepond.FileStatus;
 
 // Do this once
 
 var isSupported = (0, _filepond.supported)();
+
+// returns file sources from the <File/> child objects
+var getFilesFromChildren = function getFilesFromChildren(children) {
+  return children ? _react2.default.Children.map(children, function (child) {
+    if (child.props.type) {
+      return {
+        source: child.props.source,
+        options: {
+          type: child.props.type
+        }
+      };
+    } else {
+      return child.props.source;
+    }
+  }) : [];
+};
 
 // filtered methods
 var filteredMethods = ['setOptions', 'on', 'off', 'onOnce', 'appendTo', 'insertAfter', 'insertBefore', 'isAttachedTo', 'replaceElement', 'restoreElement', 'destroy'];
@@ -50,44 +65,31 @@ var filteredMethods = ['setOptions', 'on', 'off', 'onOnce', 'appendTo', 'insertA
 var FilePond = exports.FilePond = function (_React$Component) {
   _inherits(FilePond, _React$Component);
 
-  function FilePond(props) {
+  function FilePond() {
     _classCallCheck(this, FilePond);
 
-    var _this = _possibleConstructorReturn(this, (FilePond.__proto__ || Object.getPrototypeOf(FilePond)).call(this, props));
-
-    _this.allowFilesSync = true;
-    return _this;
+    return _possibleConstructorReturn(this, (FilePond.__proto__ || Object.getPrototypeOf(FilePond)).apply(this, arguments));
   }
-
-  // Will setup FilePond instance when mounted
-
 
   _createClass(FilePond, [{
     key: 'componentDidMount',
+
+    // Will setup FilePond instance when mounted
     value: function componentDidMount() {
       var _this2 = this;
 
       // exit here if not supported
-      if (!isSupported) return;
-
-      var options = Object.assign({}, this.props);
-
-      // if onupdate files is defined, make sure setFiles does not cause race condition
-      if (options.onupdatefiles) {
-        var cb = options.onupdatefiles;
-        options.onupdatefiles = function (items) {
-          _this2.allowFilesSync = false;
-          cb(items);
-        };
+      if (!isSupported) {
+        return;
       }
 
       // Create our pond
-      this._pond = (0, _filepond.create)(this._element, options);
+      this._pond = (0, _filepond.create)(this._element, Object.assign({}, this.props, { files: getFilesFromChildren(this.props.children) }));
 
       // Reference pond methods to FilePond component instance
       Object.keys(this._pond).filter(function (key) {
         return !filteredMethods.includes(key);
-      }).forEach(function (key) {
+      }).forEach(function (key, index) {
         _this2[key] = _this2._pond[key];
       });
     }
@@ -98,35 +100,32 @@ var FilePond = exports.FilePond = function (_React$Component) {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
       // exit when no pond defined
-      if (!this._pond) return;
-      this._pond.destroy();
-      this.allowFilesSync = true;
-    }
-  }, {
-    key: 'shouldComponentUpdate',
-    value: function shouldComponentUpdate() {
-      if (!this.allowFilesSync) {
-        this.allowFilesSync = true;
-        return false;
+      if (!this._pond) {
+        return;
       }
-      return true;
+
+      this._pond.destroy();
     }
 
     // Something changed
 
   }, {
     key: 'componentDidUpdate',
-    value: function componentDidUpdate() {
-
+    value: function componentDidUpdate(prevProps) {
       // exit when no pond defined
-      if (!this._pond) return;
+      if (!this._pond) {
+        return;
+      }
 
       var options = Object.assign({}, this.props);
+      var previousFiles = getFilesFromChildren(prevProps.children);
+      var currentFiles = getFilesFromChildren(this.props.children);
 
-      // this is only set onces, on didmount
-      delete options.onupdatefiles;
+      // file list has changed
+      if (JSON.stringify(previousFiles) !== JSON.stringify(currentFiles)) {
+        options.files = currentFiles;
+      }
 
-      // update pond options based on new props
       this._pond.setOptions(options);
     }
 
@@ -163,6 +162,21 @@ var FilePond = exports.FilePond = function (_React$Component) {
   }]);
 
   return FilePond;
+}(_react2.default.Component);
+
+// <File/>, needs to be further extended with prop types
+
+
+var File = exports.File = function (_React$Component2) {
+  _inherits(File, _React$Component2);
+
+  function File() {
+    _classCallCheck(this, File);
+
+    return _possibleConstructorReturn(this, (File.__proto__ || Object.getPrototypeOf(File)).apply(this, arguments));
+  }
+
+  return File;
 }(_react2.default.Component);
 
 
