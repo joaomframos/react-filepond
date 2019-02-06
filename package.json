@@ -33,12 +33,12 @@
         "prepare": "npm run build"
     },
     "dependencies": {
-        "filepond": "git+https://github.com/joaomframos/filepond.git"
+        "filepond": "git+https://github.com/joaomframos/filepond.git#4.0.1"
     },
     "peerDependencies": {
         "react-dom": "^16.0.0",
         "react": "^16.0.0",
-        "filepond": ">=3.7.x <5.x"
+        "filepond": "git+https://github.com/joaomframos/filepond.git#4.0.1"
     },
     "devDependencies": {
         "babel-cli": "^6.26.0",
